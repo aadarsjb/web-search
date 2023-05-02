@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Excel Table Example</title>
+</head>
+<body>
+  <h1>Excel Table Example</h1>
+  <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+
+  <!-- Search Bar HTML -->
+<input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search...">
+<br><br>
+
+<!-- Table HTML -->
+<table id="excel-table">
+</table>
+<style>
+  #excel-table {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  #excel-table td, #excel-table th {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+  }
+  #excel-table th {
+    background-color: #ddd;
+  }
+</style>
+
+<!-- JavaScript -->
+<script>
+// Load the Excel file and convert it to an HTML table
+// ...
+
+// Search functionality
+function searchTable() {
+  // Get the input value and convert it to lower case
+  const input = document.getElementById("searchInput").value.toLowerCase();
+
+  // Get the table rows and loop through them
+  const rows = document.getElementById("excel-table").rows;
+  for (let i = 0; i < rows.length; i++) {
+    // Get the table data and convert it to lower case
+    const cells = rows[i].getElementsByTagName("td");
+    let text = "";
+    for (let j = 0; j < cells.length; j++) {
+      text += cells[j].textContent.toLowerCase();
+    }
+    // If the input matches the table data, show the row, otherwise hide it
+    if (text.indexOf(input) > -1) {
+      rows[i].style.display = "";
+    } else {
+      rows[i].style.display = "none";
+    }
+  }
+}
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#excel-table').DataTable();
+  });
+</script>
+
+  <table id="excel-table">
+  </table>
+  
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.8/xlsx.full.min.js"></script>
+  <script>
+    // URL of the Excel file to be read
+    const excelUrl = './banana.xlsx';
+
+    // Load the Excel file
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', excelUrl, true);    
+    xhr.responseType = 'arraybuffer';
+
+    xhr.onload = function(e) {
+      if (xhr.status === 200) {
+        const data = new Uint8Array(xhr.response);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const table = document.getElementById('excel-table');
+
+        // Convert the worksheet data to an HTML table
+        const htmlTable = XLSX.utils.sheet_to_html(worksheet);
+        table.innerHTML = htmlTable;
+
+        // Set up WebSocket connection to monitor file changes
+        const ws = new WebSocket('ws://localhost:8080');
+        ws.onmessage = function(event) {
+          if (event.data === 'update') {
+            xhr.send();
+          }
+        };
+      }
+    };
+
+    xhr.send();
+  </script>
+
+  
+</body>
+</html>
